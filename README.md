@@ -21,35 +21,35 @@ The entire ecosystem - the custom PCB, schematics, firmware, and the web panel -
 
 The editable hardware source files are provided so that the design can be studied, modified, and manufactured in accordance with the licence.
 
-⚖️**Disclaimer:** *This hardware is a personal engineering project created solely for **educational purposes and skill development**. While it explores industrial design techniques, it has not been tested against or certified for any specific industrial standards (e.g., IEC, UL, CE). It is provided ”AS IS” without warranty. For full licence details, design files, and terms of use, please see the **[licence section of this document](#-licence)**.*
+⚖️**Disclaimer:** *This hardware is a personal engineering project created solely for **educational purposes and skill development**. While it explores industrial design techniques, it has not been tested against or certified for any specific industrial standards (e.g., IEC, UL, CE). It is provided ”AS IS” without warranty. For full licence details, design files, and terms of use, please see the **[licence section of this document](#licence)**.*
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-* 📷 [Demo](#-demo)
+* [Demo](#demo)
 
-* 🎛 [Features and Specifications](#-features-and-specifications)
+* [Features and Specifications](#features-and-specifications)
 
-* ⚡[How It Works](#-how-it-works)
+* [How It Works](#how-it-works)
 
-* 🧠 [Why I Built This](#-why-i-built-this)
+* [Why I Built This](#why-i-built-this)
 
-* 🛠️ [Getting Started](#%EF%B8%8F-getting-started)
+* [Getting Started](#getting-started)
 
-* 📂 [Repo Structure](#-repo-structure)
+* [Repo Structure](#repo-structure)
 
-* 📜 [Licence](#-licence)
+* [Licence](#licence)
 
-* ⚠️ [Safety Disclaimer](#-safety-disclaimer)
+* [Safety Disclaimer](#safety-disclaimer)
 
-* 🔗 [Acknowledgements](#-acknowledgements)
+* [Acknowledgements](#acknowledgements)
 
-* 💬 [Feedback & Contributions](#-feedback--contributions)
+* [Feedback & Contributions](#feedback--contributions)
 
 ---
 
-## 📷 Demo
+## Demo
 
 For the demo, I mounted the controller on a DIN rail and wired it into a small irrigation-style test rig. The goal was to demonstrate as many parts of the board as possible, including relay outputs, digital inputs, analogue voltage signals, 4-20 mA current loops, and MODBUS-based monitoring/control.
 
@@ -57,7 +57,7 @@ Coming soon...
 
 ---
 
-## 🎛 Features and Specifications
+## Features and Specifications
 
 I tried to pack a wide range of industrial-style hardware and firmware features into this controller so I could learn as much as possible across the realms of PCB design, embedded firmware, power electronics, isolation, and automation protocols.
 
@@ -66,7 +66,7 @@ I tried to pack a wide range of industrial-style hardware and firmware features 
 ### **Core Specifications:**
 
 - **Core:** STM32G431 Cortex-M4 MCU running at up to 170 MHz
-- **Power input:** 7–28 V DC input range
+- **Power input:** 7-28 V DC input range
 - **PCB:** Custom 4-layer PCB with separated logic and field domains
 - **Protection:** Reverse polarity protection, over-current protection, TVS protection, and ESD protection
 - **Isolation:** Galvanic isolation between the logic side and field-side interfaces
@@ -78,32 +78,14 @@ I tried to pack a wide range of industrial-style hardware and firmware features 
 
 ### Isolated Field I/O:
 
-- **4x Analogue inputs**
-  
-  - 12-bit measurement
-  - Each configurable for 0–5 Vor 4–20 mA operation
-
-- **2x Analogue outputs**
-  
-  - 12-bit output
-  - Each configurable for 0–5 V voltage output or 4–20 mA current-loop operation
-
-- **4x Digital inputs**
-  
-  - Designed for 24 V DC signalling
-
-- **2x Digital outputs**
-  
-  - Low-side sinking outputs for 24 V DC loads
-
-- **2x Relay outputs**
-  
-  - Intended for ELV switching only
-  - Rated in the datasheet for 30 V DC / 50 V AC application limits
-
-- **Isolated I²C expansion header**
-  
-  - Allows supported external devices to be mapped into the MODBUS register space with custom firmware drivers
+| Interface                | Channels | Electrical Specification | Description                                                                                                |
+|:------------------------ |:--------:|:------------------------ |:---------------------------------------------------------------------------------------------------------- |
+| **Analogue Inputs**      | 4        | 0–5 V or 4–20 mA         | 12-bit ADC; Per channel switch for Voltage & Current Mode                                                  |
+| **Analogue Outputs**     | 2        | 0–5 V or 4–20 mA         | 12-bit DAC; Per channel switch for Voltage & Current Mode                                                  |
+| **Digital Inputs**       | 4        | 24 V DC signalling       | Optocoupler-isolated industrial binary inputs                                                              |
+| **Digital Outputs**      | 2        | 24 V DC load rated       | Galvanically isolated low-side sinking drivers                                                             |
+| **Relay Outputs**        | 2        | 30 V DC / 50 V AC (ELV)  | SPDT mechanical relays                                                                                     |
+| **I²C expansion header** | 1        | Isolated 3.3 V / 5 V I²C | Allows supported external devices to be mapped into the MODBUS register space with custom firmware drivers |
 
 ### Power:
 
@@ -129,7 +111,7 @@ I tried to pack a wide range of industrial-style hardware and firmware features 
 
 ---
 
-## ⚡ How It Works
+## How It Works
 
 The controller is split into two main electrical domains:
 
@@ -170,7 +152,7 @@ This was mainly an experiment in building something more flexible than a fixed s
 
 ---
 
-## 🧠 Why I Built This
+## Why I Built This
 
 This project was a major undertaking compared to my earlier electronics projects, integrating mixed signal design, complex isolation barriers, and low level C protocol implementation. I wanted to build something that forced me to deal with more realistic embedded hardware problems, relevant to industrial, mining, manufacturing and remote monitoring environments.
 
@@ -182,7 +164,7 @@ This project was a major undertaking compared to my earlier electronics projects
 - Analogue and digital galvanic isolation
 - Isolated power supply design
 - 24 V field input and output circuitry
-- 4–20 mA current-loop inputs and outputs
+- 4-20 mA current-loop inputs and outputs
 - RS485 physical-layer design, termination, and biasing
 - Relay output design and low-side switching
 - Protection circuitry using PPTC fuses, TVS diodes, and MOSFET-based reverse polarity protection
@@ -206,7 +188,7 @@ This project was a major undertaking compared to my earlier electronics projects
 
 ---
 
-## 🛠️ Getting Started
+## Getting Started
 
 > **Note:** This project is not a polished commercial product or a beginner-friendly kit. It is a learning project and should be treated carefully, especially when connecting external power supplies, field wiring, or loads.
 
@@ -246,7 +228,7 @@ Then open the local address shown in the terminal in a web browser. You will nee
 
 ---
 
-## 📂 Repo Structure
+## Repo Structure
 
 ```text
 stm32-plc-project/
@@ -262,7 +244,7 @@ stm32-plc-project/
 
 ---
 
-## 📜 Licence
+## Licence
 
 This repository contains both hardware design files and software.
 
@@ -298,7 +280,7 @@ Some parts of this project make use of third-party open-source code and resource
 
 ---
 
-## ⚠️ Safety Disclaimer
+## Safety Disclaimer
 
 This hardware is a personal engineering project created solely for educational purposes, experimentation, and skill development.  
 
@@ -321,7 +303,7 @@ Anyone using, modifying, manufacturing, or testing this design does so entirely 
 
 ---
 
-## 🔗 Acknowledgements
+## Acknowledgements
 
 - The datasheet for this project was created using the [LaTeX Datasheet Template by Petteri Aimonen](https://github.com/PetteriAimonen/latex-datasheet-template), which is licenced under the LPPL-1.3c licence.
 
@@ -333,7 +315,7 @@ Anyone using, modifying, manufacturing, or testing this design does so entirely 
 
 ---
 
-### 💬 Feedback & Contributions
+### Feedback & Contributions
 
 Feel free to fork, share, and build your own!
 
@@ -341,4 +323,4 @@ If you build one, adapt part of the design, or use it to help with one of your o
 
 ---
 
-🔧 Darcy @ [www.darcyjprojects.xyz](https://www.darcyjprojects.xyz)
+Darcy @ [www.darcyjprojects.xyz](https://www.darcyjprojects.xyz)
