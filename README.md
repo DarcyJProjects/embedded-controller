@@ -8,9 +8,7 @@ Built around an STM32 Cortex-M4, this embedded controller handles galvanically i
 
 I've implemented several hardware features including an RTC with battery backup, HMI OLED, microSD logging, an EEPROM, efficient multi-stage power distribution & conversion with real time power monitoring, as well as many protection features.
 
-The entire ecosystem - the custom PCB, schematics, firmware, and the web panel - is completely open-source right here, so feel free to look into it and see how it works!
-
-#### Datasheet: Read the full datasheet [here](https://github.com/DarcyJProjects/embedded-controller/blob/main/Documentation/datasheet/datasheet.pdf).
+The entire project - the custom PCB, schematics, firmware, and web panel - is completely open-source, so feel free to look into it and see how it works!
 
 <img src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Media/1.png" title="" alt="IMG: Main" data-align="center">
 
@@ -29,13 +27,15 @@ The editable hardware source files are provided so that the design can be studie
 
 * [Demo](#demo)
 
-* [Features and Specifications](#features-and-specifications)
+* [Features & Specifications](#features--specifications)
+
+* [Hardware Architecture & Schematics](#hardware-architecture--schematics)
 
 * [How It Works](#how-it-works)
 
 * [Why I Built This](#why-i-built-this)
 
-* [Getting Started](#getting-started)
+* [Firmware & Web Panel](#firmware--web-panel)
 
 * [Repo Structure](#repo-structure)
 
@@ -53,11 +53,15 @@ The editable hardware source files are provided so that the design can be studie
 
 For the demo, I mounted the controller on a DIN rail and wired it into a small irrigation-style test rig. The goal was to demonstrate as many parts of the board as possible, including relay outputs, digital inputs, analogue voltage signals, 4-20 mA current loops, and MODBUS-based monitoring/control.
 
-Coming soon...
+Watch Here ➡️: [STM32 Embedded Controller Demo - YouTube](https://www.youtube.com/watch?v=2GqDx222arY)
+
+<img src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Media/demo_thumbnail.png" title="" alt="IMG: PCB" width="457">
+
+I also designed a 4-20 mA transmitter board for this demo converting a 0-3.3V signal to a current loop: [Designing a 4-20 mA Transmitter - DarcyJProjects](https://darcyjprojects.xyz/index.php/2026/05/25/designing-a-4-20-ma-transmitter/)
 
 ---
 
-## Features and Specifications
+## Features & Specifications
 
 I tried to pack a wide range of industrial-style hardware and firmware features into this controller so I could learn as much as possible across the realms of PCB design, embedded firmware, power electronics, isolation, and automation protocols.
 
@@ -75,6 +79,12 @@ I tried to pack a wide range of industrial-style hardware and firmware features 
 - **Control:** Web panel with custom "no-code" automation rules and MODBUS register access
 - **Local interface:** OLED display, tactile buttons, status LEDs, and hardware mode switches, on-board configuration factory reset
 - **Expansion:** Isolated I²C header for supported field-side peripherals
+
+
+
+**A more detailed outline can be found in the 10-page datasheet [here](https://github.com/DarcyJProjects/embedded-controller/blob/main/Documentation/datasheet/datasheet.pdf).**
+
+
 
 ### Isolated Field I/O:
 
@@ -103,11 +113,71 @@ I tried to pack a wide range of industrial-style hardware and firmware features 
 
 ### Overall Block Diagram:
 
-<img src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Documentation/datasheet/general_block_diagram.png" title="" alt="IMG: Block diagram" data-align="center">
+<img title="" src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Documentation/datasheet/general_block_diagram.png" alt="IMG: Block diagram" data-align="center" width="517">
 
 ### Power Supply Block Diagram:
 
-<img src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Documentation/datasheet/power-supply-block-diagram.png" title="" alt="IMG: Power Supply Block Diagram" data-align="center">
+<img title="" src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Documentation/datasheet/power-supply-block-diagram.png" alt="IMG: Power Supply Block Diagram" data-align="center" width="382">
+
+---
+
+## Hardware Architecture & Schematics
+
+To maintain readability and to provide reusability of designs, the hardware is structured hierarchically in Altium Designer rather than using a single flat schematic.
+
+
+
+### Hierarchical Design Breakdown
+
+The design is partitioned into 1 top-level sheet and 15 modular sub-sheets:
+
+- **Main:** Connects all subsheets together, reuses I/O designs for multiple channels, and attaches connectors.
+  
+  - **I2C_Isolator:** I2C header with ISO1540 isolator, TVS protection
+  
+  - **AOut_Isolator:** Reusable 3.3V to isolated 0-5V/4-20mA analogue output channel with NSI1200 isolator, TVS protection
+  
+  - **DOut_Isolator:** Reusable 3.3V to sinking 24V digital output channel with LTV-356T optoisolator, TVS protection
+  
+  - **I2C_RTC_DS3231:** On-board DS3231 Real Time Clock and clock battery
+  
+  - **AIN_Isolator:** Reusable isolated 0-5V/4-20mA analogue to 3.3V input channel with NSI1200 isolator, TVS protection
+  
+  - **STM32_MCU:** STM32G431CBU6 microcontroller with USB DFU, filtering, SWD, status LEDs and BOOT & NRST buttons. TVS diodes on USB & SWD lines
+  
+  - **Power_Supply:** PPTC Fused 24V input through "ideal diode" reverse polarity protection through 24 to 5V buck converter, branching to 3.3V linear regulator for logic side power and a PPTC fused 5V DC-DC isolation power supply for the field side. Features TVS diodes on 24V input and 5V field side output of DC-DC converter
+  
+  - **RS485:** MAX485 Transceiver with dual CA-IS3722 Isolators, status LEDs, biasing and termination header, TVS protection
+  
+  - **I2C_PowerMonitor_INA226:** INA226 power monitoring IC for the 24V input post reverse polarity protection but pre buck converter
+  
+  - **I2C_EEPROM_AT24C32:** AT24C32BN EEPROM used for automation rule and configuration storage
+  
+  - **I2C_Display:** Socket for the 0.96 inch OLED display module, Menu button
+  
+  - **BTN2_FactoryReset:** Factory reset button
+  
+  - **SPI_SD:** MicroSD card slot with TVS protection on all data lines
+  
+  - **DOut_Relay:** Reusable SPDT relay with coil switched to isolated 5V supply via LTV-356T optoisolator, status LED, flyback suppression
+  
+  - **DIn_Isolator:** Reusable 24V to 3.3V digital input channel with LTV-356T optoisolator, TVS protection
+
+**Schematics:** View the complete 16-sheet schematic here: [Documentation/schematics](https://github.com/DarcyJProjects/embedded-controller/blob/main/Documentation/schematics.pdf)
+
+
+
+### Galvanic Isolation Separation
+
+The PCB features a continuous galvanic isolation barrier running through all 4 layers:
+
+- **Domain Partitioning:** The logic ground (`GND`) and the isolated field ground (`5V_ISO_GND`) are never connected together nor overlap or share ground planes.
+
+- **Physical Barrier:** A continuous non-copper clearance barrier splits the PCB in two from top to bottom, offering the logic side a protective barrier from field side HV transients.
+
+- **Over the Barrier:** No traces cross the barrier without isolation by dedicated isolation ICs or optoisolators.
+
+![Isolation Barrier Image](https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Media/isolation_barrier.png)
 
 ---
 
@@ -188,35 +258,21 @@ This project was a major undertaking compared to my earlier electronics projects
 
 ---
 
-## Getting Started
+## Firmware & Web Panel
 
-> **Note:** This project is not a polished commercial product or a beginner-friendly kit. It is a learning project and should be treated carefully, especially when connecting external power supplies, field wiring, or loads.
+### Firmware Flashing
 
-### Hardware
+The firmware is built in STM32CubeIDE for the STM32G431CBU6 and can be uploaded to the Embedded Controller via the USB-C port:
 
-Before powering the board:
-
-1. Inspect the PCB for solder bridges, assembly mistakes, damaged connectors, or incorrect component values.
-2. Check the analogue input/output mode switches before connecting sensors or actuators.
-3. Confirm the input supply is within the supported DC range.
-4. Use a current-limited bench supply for first power-up.
-5. Do not connect mains voltage or safety-critical loads.
-6. Check the datasheet before connecting external devices.
-
-### Firmware
-
-The STM32 firmware project is intended to be opened in STM32CubeIDE.
-
-Typical workflow:
-
-1. Open the firmware project
-2. Build the project in STM32CubeIDE.
-3. Flash the board using USB DFU (hold down BOOT0 and press NRST while powered to enter DFU mode)
-4. Connect over serial/MODBUS for debugging or configuration.
+1. Ensure the board is powered via an external 24V DC supply. The USB connector provides no power, so the external supply is necessary.
+2. Connect to the board using a USB-C cable.
+3. Enter the bootloader by holding `BOOT0` , pressing/pulsing `NRST` once, and then finally releasing `BOOT0`.
+4. Flash the compiled binary directly over USB DFU using STM32CubeProgrammer or a similar utility.
+5. Connect over serial/MODBUS via the RS485 line for configuration.
 
 ### Web panel
 
-The web panel is intended to run locally and communicate with the controller over a USB/serial MODBUS connection.
+The Node.js web panel connects via a USB-to-RS485 adapter to interface with the embedded controller over MODBUS. It can be installed like so:
 
 ```bash
 cd "Web Panel"
@@ -224,7 +280,7 @@ npm install
 npm start
 ```
 
-Then open the local address shown in the terminal in a web browser. You will need an RS485 to USB-Serial converter so that you can select a COM port to communicate with the embedded controller.
+Open the local address shown in the terminal in a web browser. Connect to the RS485 line with a USB-to-RS485 converter and select its Serial COM port.
 
 ---
 
@@ -232,9 +288,9 @@ Then open the local address shown in the terminal in a web browser. You will nee
 
 ```text
 stm32-plc-project/
-├── Documentation/              # Datasheet, drawings
+├── Documentation/              # Datasheet, drawings, PDF Schematics
 ├── Firmware/                   # STM32CubeIDE firmware project
-├── Hardware/                   # Altium Designer project: PCB design files, schematics
+├── Hardware/                   # Altium Designer project: PCB design files, Altium schematics
 ├── Web Panel/                  # Node.js web configuration panel
 ├── Media/                      # Photos, renders, screenshots, and demo images
 ├── LICENCE-CERN-OHL-S-2.0.txt  # CERN-OHL-S v2 licence text for hardware
@@ -274,7 +330,7 @@ For the full legal terms, see [LICENCE-MIT.txt](https://github.com/DarcyJProject
 
 ### Third-Party Code and Resources
 
-Some parts of this project make use of third-party open-source code and resources. These remain under their original licences and are acknowledged in the [Acknowledgements](#-acknowledgements) section.
+Some parts of this project make use of third-party open-source code and resources. These remain under their original licences and are acknowledged in the [Acknowledgements](#acknowledgements) section.
 
 <img src="https://raw.githubusercontent.com/DarcyJProjects/embedded-controller/refs/heads/main/Media/3.png" title="" alt="IMG: Close up" data-align="center">
 
